@@ -11,7 +11,6 @@ public class SacRun extends Form{
 		A2();
 		gm.init();
 	}
-	//testing github
 
 	private void A2() {
 		ViewMessage viewMessage = new ViewMessage();
