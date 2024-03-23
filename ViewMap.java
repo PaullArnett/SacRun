@@ -12,7 +12,6 @@ import com.csus.csc133.GameObjectCollection.Iterator;
 public class ViewMap extends Container implements Observer{
 	GameModel gm;
 	
-	
     public ViewMap() {
 		this.getStyle().setBorder(Border.createLineBorder(2, ColorUtil.rgb(255,0,0)));
 		this.setLayout(new BoxLayout(BoxLayout.Y_AXIS));
@@ -48,7 +47,7 @@ public class ViewMap extends Container implements Observer{
 			}
 			if(next instanceof StudentPlayer) {
 				int[] xPoints = {x, x+size, x+(size/2)};  
-			    int[] yPoints = {y+size, y+size, y};
+				int[] yPoints = {y+size, y+size, y};
 			    g.setColor(ColorUtil.BLACK);
 			    g.fillPolygon(xPoints, yPoints, 3);
 			}

@@ -233,16 +233,16 @@ public class GameModel extends Observable {
 				double xNext = Math.round(getX() + Math.cos(Math.toRadians(90 - head)) * speed);
 				double yNext = Math.round(getY() + Math.sin(Math.toRadians(90 - head)) * speed);
 				//if player were to go outside bounds of map then they are placed at nearest edge and turned around
-				if (xNext > gameWidth) {
-					xNext = gameWidth;
+				if (xNext > gameWidth - getSize()) {
+					xNext = gameWidth - getSize();
 					needTurn = true;
 				}
 				if (xNext < 0) {
 					xNext = 0;
 					needTurn = true;
 				}
-				if (yNext > gameHeight) {
-					yNext = gameHeight;
+				if (yNext > gameHeight - getSize()) {
+					yNext = gameHeight - getSize();
 					needTurn = true;
 				}
 				if (yNext < 0) {
