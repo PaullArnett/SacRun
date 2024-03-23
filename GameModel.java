@@ -350,7 +350,7 @@ public class GameModel extends Observable {
 			super();
 			setX(gameWidth / 2);
 			setY(gameHeight / 2);
-			setHead(0);
+			setHead(180);
 		}
 		public StudentPlayer getPlayer() {
 	        if (thePlayer == null) {
@@ -593,11 +593,11 @@ public class GameModel extends Observable {
 			descr = "Player stops moving";
 		}
 		if(key == 'a') {
-			player.getPlayer().turn(-15); // player turns left 15 degrees
+			player.getPlayer().turn(15); // player turns left 15 degrees
 			descr = "Player turns left";
 		}
 		if(key == 'd') {
-			player.getPlayer().turn(15); // player turns right 15 degrees
+			player.getPlayer().turn(-15); // player turns right 15 degrees
 			descr = "Player turns right";
 		}
 	    setChanged();
