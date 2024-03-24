@@ -1,8 +1,9 @@
 package com.csus.csc133;
 import com.codename1.ui.*;
 import com.codename1.ui.layouts.BorderLayout;
+import com.codename1.ui.util.UITimer;
 
-public class SacRun extends Form{
+public class SacRun extends Form implements Runnable{
 
 	private GameModel gm;
 	
@@ -10,8 +11,14 @@ public class SacRun extends Form{
 		gm = new GameModel();
 		A2();
 		gm.init();
+		UITimer timer = new UITimer(this);
+		timer.schedule(gm.tickLength, true, this);
 	}
-
+	
+	public void run() {
+		gm.gameTick();
+	}
+	
 	private void A2() {
 		ViewMessage viewMessage = new ViewMessage();
 		ViewMap viewMap = new ViewMap();

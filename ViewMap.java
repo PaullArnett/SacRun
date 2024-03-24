@@ -39,20 +39,23 @@ public class ViewMap extends Container implements Observer{
 				g.setColor(ColorUtil.BLUE);
 				g.fillArc(x, y, size, size, 0, 360);
 			}
-			if(next instanceof Student && !(next instanceof StudentPlayer)) {
+			if(next instanceof Student) {
 				int[] xPoints = {x, x+size, x+(size/2)}; // X-coordinates 
 			    int[] yPoints = {y+size, y+size, y};// Y-coordinates
-			    g.setColor(ColorUtil.BLACK);
-			    g.drawPolygon(xPoints, yPoints, 3);
-			}
-			if(next instanceof StudentPlayer) {
-				int[] xPoints = {x, x+size, x+(size/2)};  
-				int[] yPoints = {y+size, y+size, y};
-			    g.setColor(ColorUtil.BLACK);
-			    g.fillPolygon(xPoints, yPoints, 3);
+			    int[] color = next.getColor();
+			    g.setColor(ColorUtil.rgb(color[0], color[1], color[2]));
+			    
+			    if(next instanceof StudentPlayer) {
+			    	g.fillPolygon(xPoints, yPoints, 3);
+			    }
+			    else {
+			    	g.drawPolygon(xPoints, yPoints, 3);
+			    }
 			}
 			System.out.println(next.toString());
 		}
+		System.out.println("Game Width: " + this.getWidth());
+		System.out.println("Game Height: " + this.getHeight());
 	}
     public void update(Observable observable, Object o) {
     	gm = (GameModel) observable;

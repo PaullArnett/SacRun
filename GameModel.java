@@ -15,6 +15,9 @@ public class GameModel extends Observable {
 	private int gameWidth = 1000;
 	private int gameHeight = 800;
 	private double gameTime;
+	private double elapsedTime;
+	public int tickLength = 20;
+	public double tickMult = (double) tickLength / 1000;
 	public boolean activeLecture;
 	public String activeLectureName;
 	public double lectureTime;
@@ -49,14 +52,14 @@ public class GameModel extends Observable {
 
 	public class GameObject {
 		//coordinates of object
-		private double x; 
-		private double y; 
+		public double x; 
+		public double y; 
 		private int size;
 		private int[] color = {0,0,0};
 	
 		public GameObject(){
-			this.x = random.nextInt(gameWidth + 1);
-			this.y = random.nextInt(gameHeight + 1);
+			this.x = random.nextInt(gameWidth - 90);
+			this.y = random.nextInt(gameHeight - 90);
 		}
 		//methods for getting and setting variables
 		public double getX() {
@@ -117,12 +120,14 @@ public class GameModel extends Observable {
 		}
 		//if there is an active lecture then decrease its time by 1
 		public void lectureTick() {
-			if(this.lecture != null) {
-				lectureTime--;
-				//if time is now 0 then end lecture and player is absent
-				if (lectureTime <= 0) {
-					player.getPlayer().absent();
-					endLecture();
+			if(elapsedTime % 1000 == 0) {
+				if(this.lecture != null) {
+					lectureTime--;
+					//if time is now 0 then end lecture and player is absent
+					if (lectureTime <= 0) {
+						player.getPlayer().absent();
+						endLecture();
+					}
 				}
 			}
 			//if no other lecture halls has an active lecture then 10% to start new one
@@ -209,7 +214,7 @@ public class GameModel extends Observable {
 		public void handleCollide(Student s);
 	}
 	abstract class Student extends GameObject implements IMoveable {
-		private static final double DEFAULT_SPEED = 10;
+		private static final double DEFAULT_SPEED = 100;
 		private static final double DEFAULT_TALKIVELEVEL = 2;
 		private static final double DEFAULT_HYDRATION = 200.0;
 		private double speed = DEFAULT_SPEED;
@@ -230,8 +235,9 @@ public class GameModel extends Observable {
 		}
 		public void move() {
 			if (timeRemaining <= 0) { //if not talking with another student then move
-				double xNext = Math.round(getX() + Math.cos(Math.toRadians(90 - head)) * speed);
-				double yNext = Math.round(getY() + Math.sin(Math.toRadians(90 - head)) * speed);
+				double xNext = x + Math.cos(Math.toRadians(90 - head)) * speed * tickMult;
+				double yNext = y + Math.sin(Math.toRadians(90 - head)) * speed * tickMult;
+				System.out.println(tickMult);
 				//if player were to go outside bounds of map then they are placed at nearest edge and turned around
 				if (xNext > gameWidth - getSize()) {
 					xNext = gameWidth - getSize();
@@ -257,12 +263,13 @@ public class GameModel extends Observable {
 				setY(yNext);
 			}
 			else {
-				timeRemaining--; //if talking reduce timer by one
+				timeRemaining -= tickLength / 1000; //if talking reduce timer
 			}
-			
-			hydration = hydration - sweatingRate; //if they moved or not hydration still drops
-			
-			if(timeRemaining >= 1) {
+			if(elapsedTime % 1000 == 0)
+			{
+				hydration = hydration - sweatingRate; //if they moved or not hydration still drops
+			}
+			if(timeRemaining > 0) {
 				setColor(new int[] {255,192,203}); //pink
 			}
 			else {
@@ -409,7 +416,9 @@ public class GameModel extends Observable {
 	        this.parent = parent;
 	    }
 		public void apply() {
-			this.parent.setHead(random.nextInt(360));
+			if (elapsedTime % 1000 == 0) {
+				this.parent.setHead(random.nextInt(360));
+			}
 		}
 	}
 	public class verticalStrategy implements IStrategy{
@@ -477,7 +486,9 @@ public class GameModel extends Observable {
 	class StudentConfused extends Student implements IMoveable {
 		//random head direction each time move is called
 		public void move() {
-			setHead(random.nextInt(359));
+			if (elapsedTime % 1000 == 0) {
+				setHead(random.nextInt(359));
+			}
 			super.move();
 		}
 	}
@@ -491,13 +502,15 @@ public class GameModel extends Observable {
 	//StudentHappy will randomly speed up
 	class StudentHappy extends Student implements IMoveable {	
 		public void move(){
-			if (random.nextInt(4) == 0) { //25% chance to speed up
-				setSpeed(10);
-				super.move();
-				setSpeed(.1);
-			}
-			else {
-				super.move();
+			if (elapsedTime % 1000 == 0) {	
+				if (random.nextInt(4) == 0) { //25% chance to speed up
+					setSpeed(8);
+					super.move();
+					setSpeed(.1);
+				}
+				else {
+					super.move();
+				}
 			}
 		}
 		//extended toString method
@@ -667,8 +680,6 @@ public class GameModel extends Observable {
 		}
 		if(key == 'f') {
 			gameTick(); //game tick occurs
-			setChanged();
-			notifyObservers("Next game tick");
 		}
 		if(key == 'i') {
 			//prints out creator
@@ -744,6 +755,7 @@ public class GameModel extends Observable {
 		notifyObservers("Player collides with " + next.getClass().getSimpleName() + "!");
 	}
 	public void gameTick() {
+		elapsedTime += tickLength;
 		Iterator iterator = objectCollection.createIterator();
 		//all students use their move function
 		while(iterator.hasNext()) {
@@ -760,7 +772,11 @@ public class GameModel extends Observable {
 		if (player.getPlayer().getHydration() <= 0 | player.getPlayer().getWaterIntake() >= 200 | player.getPlayer().getAbsence() >= 3) {
 			gameOver();
 		}
+		if (elapsedTime % 1000 == 0) {
 		gameTime++;
+		}
+		setChanged();
+		notifyObservers("Next game tick");
 	}
 	//game over :(
 	public void gameOver() {
