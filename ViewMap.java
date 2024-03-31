@@ -52,26 +52,31 @@ public class ViewMap extends Container implements Observer{
 			    	g.drawPolygon(xPoints, yPoints, 3);
 			    }
 			}
-			System.out.println(next.toString());
+			if (next.isSelected()) {
+				g.setColor(ColorUtil.rgb(255,0,0));
+				g.drawRect(x, y, size, size);
+			}
+			//System.out.println(next.toString());
 		}
-		System.out.println("Game Width: " + this.getWidth());
-		System.out.println("Game Height: " + this.getHeight());
+		//System.out.println("Game Width: " + this.getWidth());
+		//System.out.println("Game Height: " + this.getHeight());
 	}
     public void update(Observable observable, Object o) {
     	gm = (GameModel) observable;
     	repaint();
-    	/*//prints out all info
-		System.out.println("Time: " + gm.getGameTime());
-		while (iterator.hasNext()) {
-			GameObject next = iterator.getNext();
-			if (next instanceof LectureHall){
-				paint();
+    }
+    public void checkPointer(int pointerX, int pointerY) {
+		Iterator iterator2 = gm.getCollection().createIterator();
+		while(iterator2.hasNext()) {
+			GameObject next = iterator2.getNext();
+			//checking if the click was inside the bounds of each object -- the 116 being added is the size of the toolbar
+			if (pointerX >= next.getX() + getX() && pointerX <= next.getX() + next.getSize() + getX() && pointerY >= next.getY() + getY() + 115 && pointerY <= next.getY() + next.getSize() + getY() + 115) {
+				next.setSelected(true);
 			}
-			System.out.println(iterator.getNext().toString());
+			else {
+				next.setSelected(false);
+			}
 		}
-		System.out.println("Game Width: " + this.getWidth());
-		System.out.println("Game Height: " + this.getHeight());
-        */
     }
 
 }

@@ -3,12 +3,15 @@ import java.lang.Math;
 import java.util.Arrays;
 import java.util.Observable;
 import java.util.Random;
+import java.util.Vector;
 
 import com.codename1.ui.Button;
 import com.codename1.ui.CN;
 import com.codename1.ui.Dialog;
+import com.codename1.ui.Graphics;
 import com.codename1.ui.events.ActionEvent;
 import com.codename1.ui.events.ActionListener;
+import com.codename1.ui.geom.Point;
 import com.csus.csc133.GameObjectCollection.Iterator;
 
 public class GameModel extends Observable {
@@ -49,13 +52,22 @@ public class GameModel extends Observable {
 	public GameObjectCollection getCollection() {
 		return objectCollection;
 	}
-
-	public class GameObject {
+	
+	public interface ISelectable{
+		public void setSelected(boolean b);
+		public boolean isSelected();
+		//public boolean contains(Point pPtrRelPrnt, Point pCmpRelPrnt);
+		//public void draw(Graphics g, Point pCmpRelPrnt);
+	}
+	
+	abstract class GameObject implements ISelectable {
 		//coordinates of object
 		public double x; 
 		public double y; 
 		private int size;
 		private int[] color = {0,0,0};
+		private boolean isSelected = true;
+		Vector<GameObject> recentCollisions = new Vector<>();
 	
 		public GameObject(){
 			this.x = random.nextInt(gameWidth - 90);
@@ -85,6 +97,12 @@ public class GameModel extends Observable {
 		}
 		public void setSize(int size) {
 		    this.size = size;
+		}
+		public boolean isSelected() {
+			return isSelected;
+		}
+		public void setSelected(boolean b) {
+			isSelected = b;
 		}
 		public void handleCollide(Student s){
 			//empty but will be overridden
@@ -214,7 +232,7 @@ public class GameModel extends Observable {
 		public void handleCollide(Student s);
 	}
 	abstract class Student extends GameObject implements IMoveable {
-		private static final double DEFAULT_SPEED = 100;
+		private static final double DEFAULT_SPEED = 125;
 		private static final double DEFAULT_TALKIVELEVEL = 2;
 		private static final double DEFAULT_HYDRATION = 200.0;
 		private double speed = DEFAULT_SPEED;
@@ -237,7 +255,6 @@ public class GameModel extends Observable {
 			if (timeRemaining <= 0) { //if not talking with another student then move
 				double xNext = x + Math.cos(Math.toRadians(90 - head)) * speed * tickMult;
 				double yNext = y + Math.sin(Math.toRadians(90 - head)) * speed * tickMult;
-				System.out.println(tickMult);
 				//if player were to go outside bounds of map then they are placed at nearest edge and turned around
 				if (xNext > gameWidth - getSize()) {
 					xNext = gameWidth - getSize();
@@ -262,12 +279,13 @@ public class GameModel extends Observable {
 				setX(xNext);
 				setY(yNext);
 			}
-			else {
-				timeRemaining -= tickLength / 1000; //if talking reduce timer
-			}
 			if(elapsedTime % 1000 == 0)
 			{
-				hydration = hydration - sweatingRate; //if they moved or not hydration still drops
+				hydration = hydration - sweatingRate; //hydration and timeRemaining drops each elapsed second
+				
+				if (timeRemaining > 0) {
+					timeRemaining -= 1;
+				}
 			}
 			if(timeRemaining > 0) {
 				setColor(new int[] {255,192,203}); //pink
@@ -606,11 +624,11 @@ public class GameModel extends Observable {
 			descr = "Player stops moving";
 		}
 		if(key == 'a') {
-			player.getPlayer().turn(15); // player turns left 15 degrees
+			player.getPlayer().turn(10); // player turns left 15 degrees
 			descr = "Player turns left";
 		}
 		if(key == 'd') {
-			player.getPlayer().turn(-15); // player turns right 15 degrees
+			player.getPlayer().turn(-10); // player turns right 15 degrees
 			descr = "Player turns right";
 		}
 	    setChanged();
@@ -767,6 +785,11 @@ public class GameModel extends Observable {
 			if (next instanceof LectureHall) {
 				((LectureHall) next).lectureTick();
 			}
+			Iterator iterator2 = objectCollection.createIterator();
+			while(iterator2.hasNext()) {
+				GameObject next2 = iterator2.getNext();
+				checkCollision(next, next2);
+			}
 		}
 		//game over if hydration = 0 or water intake is over 199 or 3 absences occur
 		if (player.getPlayer().getHydration() <= 0 | player.getPlayer().getWaterIntake() >= 200 | player.getPlayer().getAbsence() >= 3) {
@@ -778,6 +801,32 @@ public class GameModel extends Observable {
 		setChanged();
 		notifyObservers("Next game tick");
 	}
+	public void checkCollision(GameObject obj1, GameObject obj2) {
+		//checking if they overlap horizontally and vertically
+		if(obj1 != obj2 && obj1.getX() + obj1.getSize() >= obj2.getX() && obj1.getX() <= obj2.getX() + obj2.getSize() && obj1.getY() + obj1.getSize() >= obj2.getY() && obj1.getY() <= obj2.getY() + obj2.getSize()) {
+			if(obj1 instanceof Student) {
+				if (!obj1.recentCollisions.contains(obj2)) {
+					obj1.recentCollisions.add(obj2);
+					obj2.recentCollisions.add(obj1);
+					obj2.handleCollide((Student)obj1);
+				}
+			}
+			else if(obj2 instanceof Student) {
+				if (!obj2.recentCollisions.contains(obj1)) {
+					obj1.recentCollisions.add(obj2);
+					obj2.recentCollisions.add(obj1);
+					obj1.handleCollide((Student)obj2);
+				}
+			}
+		}
+		else {
+			if(obj1.recentCollisions.contains(obj2)) {
+				obj1.recentCollisions.remove(obj2);
+				obj2.recentCollisions.remove(obj1);
+			}
+		}
+	}
+
 	//game over :(
 	public void gameOver() {
 		boolean exit = Dialog.show("GameOver", "Game Time: " + gameTime, "Exit Game", null);

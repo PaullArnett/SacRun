@@ -2,33 +2,45 @@ package com.csus.csc133;
 import com.codename1.ui.*;
 import com.codename1.ui.layouts.BorderLayout;
 import com.codename1.ui.util.UITimer;
+import com.csus.csc133.GameModel.GameObject;
+import com.csus.csc133.GameObjectCollection.Iterator;
+import com.codename1.ui.events.ActionEvent;
+import com.codename1.ui.events.ActionListener;
+import com.codename1.ui.events.*;
 
-public class SacRun extends Form implements Runnable{
+public class SacRun extends Form implements Runnable, ActionListener {
 
 	private GameModel gm;
+	char key = ' ';
+	UITimer turnTimer = new UITimer(() -> { handleInput(key); });
 	
 	public SacRun(){
 		gm = new GameModel();
-		A2();
-		gm.init();
 		UITimer timer = new UITimer(this);
 		timer.schedule(gm.tickLength, true, this);
+		A3();
+		gm.init();
+
 	}
-	
 	public void run() {
 		gm.gameTick();
 	}
-	
-	private void A2() {
+	private void A3() {
 		ViewMessage viewMessage = new ViewMessage();
 		ViewMap viewMap = new ViewMap();
 		ViewStatus viewStatus = new ViewStatus();
-		Controls controls = new Controls(gm);
+		Controls controls = new Controls(gm, this);
 		Toolbar toolbar = this.getToolbar();
 		
 		gm.addObserver(viewStatus);
 		gm.addObserver(viewMessage);
 		gm.addObserver(viewMap);
+		
+		this.addPointerPressedListener((evt) -> { 
+			int pointerX = evt.getX();
+		    int pointerY = evt.getY();
+		    viewMap.checkPointer(pointerX, pointerY);
+		});
 		
 		//Commands for toolbar
 		NonMovementCommand aboutB = new NonMovementCommand("About", gm);
@@ -55,5 +67,43 @@ public class SacRun extends Form implements Runnable{
         
         gm.setGameWidth(viewMap.getWidth());
         gm.setGameHeight(viewMap.getHeight());
+	}
+	
+	public void actionPerformed(ActionEvent evt) {
+        // Handle action events
+    }
+    public void keyPressed(int keyCode) {
+		
+        switch (keyCode) {
+            case 'w':
+                handleInput('w');
+                break;
+            case 's':
+                handleInput('s');
+                break;
+            case 'a':
+                handleInput('a');
+                key = 'a';
+                turnTimer.schedule(50, true, this);
+                break;
+            case 'd':
+                handleInput('d');
+                key = 'd';
+                turnTimer.schedule(50, true, this);
+                break;
+        }
+    }
+	public void keyReleased(int keyCode) {
+		switch(keyCode) {
+		case 'a':
+                turnTimer.cancel();
+                break;
+        case 'd':
+        	 turnTimer.cancel();
+             break;
+		}
+	}
+	public void handleInput(char key) {
+		gm.playerMovement(key);
 	}
 }

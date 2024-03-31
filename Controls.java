@@ -7,7 +7,7 @@ import com.codename1.ui.plaf.Border;
 
 class Controls extends Container{
 		
-	    public Controls(GameModel gm) {
+	    public Controls(GameModel gm, SacRun sacRun) {
 	    	//making button array to manipulate them easier
 	    	Button[] buttons = new Button[10];
 	    	//creating buttons for movement
