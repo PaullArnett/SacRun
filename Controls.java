@@ -6,10 +6,10 @@ import com.codename1.ui.layouts.BoxLayout;
 import com.codename1.ui.plaf.Border;
 
 class Controls extends Container{
+	Button[] buttons = new Button[7];
 		
 	    public Controls(GameModel gm, SacRun sacRun) {
 	    	//making button array to manipulate them easier
-	    	Button[] buttons = new Button[10];
 	    	//creating buttons for movement
 	    	buttons[0] = new Button("Move");
 	    	buttons[1] = new Button("Stop");
@@ -17,11 +17,11 @@ class Controls extends Container{
 	    	buttons[3] = new Button("Turn Right");
 	    	//creating buttons for non-movement
 	    	buttons[4] = new Button("Change Strategies");
-	    	buttons[5] = new Button("Lecture Hall");
-	    	buttons[6] = new Button("Restroom");
-	    	buttons[7] = new Button("Water Dispenser");
-	    	buttons[8] = new Button("Student");
-	    	buttons[9] = new Button("Next Frame");
+	    	//buttons[5] = new Button("Lecture Hall");
+	    	//buttons[6] = new Button("Restroom");
+	    	//buttons[7] = new Button("Water Dispenser");
+	    	buttons[5] = new Button("Pause");
+	    	buttons[6] = new Button("Change Position");
 	    	
 	        // Set commands for movement buttons
 			buttons[0].setCommand(new MovementCommand("Move", gm));
@@ -29,13 +29,13 @@ class Controls extends Container{
 			buttons[2].setCommand(new MovementCommand("Turn Left", gm));
 			buttons[3].setCommand(new MovementCommand("Turn Right", gm));
 	        // Set commands for movement buttons
-			buttons[4].setCommand(new NonMovementCommand("Change Strategies", gm));
-			buttons[5].setCommand(new NonMovementCommand("Lecture Hall", gm));
-			buttons[6].setCommand(new NonMovementCommand("Restroom", gm));
-			buttons[7].setCommand(new NonMovementCommand("Water Dispenser", gm));
-			buttons[8].setCommand(new NonMovementCommand("Student", gm));
-			buttons[9].setCommand(new NonMovementCommand("Next Frame", gm));
-			
+			buttons[4].setCommand(new NonMovementCommand("Change Strategies", gm, sacRun));
+			//buttons[5].setCommand(new NonMovementCommand("Lecture Hall", gm, sacRun));
+			//buttons[6].setCommand(new NonMovementCommand("Restroom", gm, sacRun));
+			//buttons[7].setCommand(new NonMovementCommand("Water Dispenser", gm, sacRun));
+			buttons[5].setCommand(new NonMovementCommand("Pause", gm, sacRun));
+			buttons[6].setCommand(new NonMovementCommand("Change Position", gm, sacRun));
+		
 			for(int i = 0; i < buttons.length; i++) {
 				buttons[i].setPreferredH(120);
 				buttons[i].getStyle().setBgTransparency(255);
@@ -45,6 +45,9 @@ class Controls extends Container{
 		        this.add(buttons[i]);
 			}
 			this.setLayout(new BoxLayout(BoxLayout.Y_AXIS));
-	    }  
+	    } 
+	    public Button getButton(int i) {
+	    	return buttons[i];
+	    }
 	}
 	

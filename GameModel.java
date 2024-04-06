@@ -52,6 +52,10 @@ public class GameModel extends Observable {
 	public GameObjectCollection getCollection() {
 		return objectCollection;
 	}
+	public void change(String s) {
+		setChanged();
+		notifyObservers(s);
+	}
 	
 	public interface ISelectable{
 		public void setSelected(boolean b);
@@ -66,12 +70,24 @@ public class GameModel extends Observable {
 		public double y; 
 		private int size;
 		private int[] color = {0,0,0};
-		private boolean isSelected = true;
+		private boolean isSelected;
 		Vector<GameObject> recentCollisions = new Vector<>();
 	
 		public GameObject(){
-			this.x = random.nextInt(gameWidth - 90);
-			this.y = random.nextInt(gameHeight - 90);
+			Iterator spawnIterator = objectCollection.createIterator();
+			boolean uniqueSpawn = false;
+			
+			//making sure objects don't overlap on initiation
+			while(!uniqueSpawn) {
+				uniqueSpawn = true;
+				this.x = random.nextInt(gameWidth - 90);
+				this.y = random.nextInt(gameHeight - 90);
+				while (spawnIterator.hasNext()) {
+					if(checkCollision(this, spawnIterator.getNext())){
+						uniqueSpawn = false;
+					}
+				}
+			}
 		}
 		//methods for getting and setting variables
 		public double getX() {
@@ -138,22 +154,21 @@ public class GameModel extends Observable {
 		}
 		//if there is an active lecture then decrease its time by 1
 		public void lectureTick() {
-			if(elapsedTime % 1000 == 0) {
+			if(elapsedTime % 100 == 0) {
 				if(this.lecture != null) {
-					lectureTime--;
+					lectureTime = Math.round((lectureTime - .1) * 10.0)/10.0;
 					//if time is now 0 then end lecture and player is absent
 					if (lectureTime <= 0) {
 						player.getPlayer().absent();
 						endLecture();
 					}
 				}
-			}
-			//if no other lecture halls has an active lecture then 10% to start new one
-			else {
-				if(!activeLecture && random.nextInt(15) == 0) {
-					startNewLecture();
+				else if(!activeLecture && random.nextInt(100) == 0){
+						startNewLecture();
 				}
 			}
+			//if no other lecture halls has an active lecture then 10% to start new one
+
 		}
 		public void startNewLecture() {
 			lecture = new Lecture();
@@ -195,7 +210,7 @@ public class GameModel extends Observable {
 		
 		public Lecture() {
 			subject = subjects[random.nextInt(4)];
-			lectureTime = 10;
+			lectureTime = 20;
 		}
 		public String getSubject() {
 			return subject;
@@ -205,6 +220,7 @@ public class GameModel extends Observable {
 	class Restroom extends Facility {
 		public Restroom() {
 			super();
+			setSize(70);
 		}
 		public void handleCollide(Student s){
 			if (s instanceof StudentPlayer) {
@@ -217,7 +233,7 @@ public class GameModel extends Observable {
 	class WaterDispenser extends Facility {
 		public WaterDispenser() {
 			super();
-			setSize(40);
+			setSize(50);
 		}
 		public void handleCollide(Student s){
 			if (s instanceof StudentPlayer) {
@@ -232,10 +248,10 @@ public class GameModel extends Observable {
 		public void handleCollide(Student s);
 	}
 	abstract class Student extends GameObject implements IMoveable {
-		private static final double DEFAULT_SPEED = 125;
+		public static final double DEFAULT_SPEED = 115;
 		private static final double DEFAULT_TALKIVELEVEL = 2;
 		private static final double DEFAULT_HYDRATION = 200.0;
-		private double speed = DEFAULT_SPEED;
+		public double speed = DEFAULT_SPEED;
 		private double talkiveLevel = DEFAULT_TALKIVELEVEL;
 		private double head;
 		private double timeRemaining;
@@ -521,15 +537,14 @@ public class GameModel extends Observable {
 	class StudentHappy extends Student implements IMoveable {	
 		public void move(){
 			if (elapsedTime % 1000 == 0) {	
-				if (random.nextInt(4) == 0) { //25% chance to speed up
-					setSpeed(8);
-					super.move();
-					setSpeed(.1);
+				if (this.speed != DEFAULT_SPEED) {
+					this.speed = DEFAULT_SPEED;
 				}
-				else {
-					super.move();
+				if (random.nextInt(4) == 0) { //25% chance to speed up
+					setSpeed(5);
 				}
 			}
+			super.move();
 		}
 		//extended toString method
 		public String toString() {
@@ -600,7 +615,7 @@ public class GameModel extends Observable {
 		}
 		//creating 3 lecture halls
 		objectCollection.addGameObject(new LectureHall("Amador"));
-		objectCollection.addGameObject(new LectureHall("Redwood"));
+		objectCollection.addGameObject(new LectureHall("Shasta"));
 		objectCollection.addGameObject(new LectureHall("Tahoe"));
 		//2-4 WaterDispensers and Restrooms
 		for (int i = 0; i <= random.nextInt(3)+1; i++) {
@@ -650,11 +665,11 @@ public class GameModel extends Observable {
 						break;
 					}
 				}
-				if (next instanceof LectureHall && activeLectureName == "Redwood") {
-					if(((LectureHall) next).getName() == "Redwood"){
+				if (next instanceof LectureHall && activeLectureName == "Shasta") {
+					if(((LectureHall) next).getName() == "Shasta"){
 						next.handleCollide(player.getPlayer());
 						setChanged();
-						notifyObservers("Player collides with lecture hall Redwood!");
+						notifyObservers("Player collides with lecture hall Shasta!");
 						break;
 					}
 				}
@@ -715,7 +730,6 @@ public class GameModel extends Observable {
 					notifyObservers("StudentStrategy changed to " + ((StudentStrategy) next).getStrategyName());
 					break;
 				}
-
 			}
 		}
 	}
@@ -788,45 +802,55 @@ public class GameModel extends Observable {
 			Iterator iterator2 = objectCollection.createIterator();
 			while(iterator2.hasNext()) {
 				GameObject next2 = iterator2.getNext();
-				checkCollision(next, next2);
+				if(checkCollision(next, next2)) {
+					collision(next, next2);
+				}
 			}
 		}
 		//game over if hydration = 0 or water intake is over 199 or 3 absences occur
 		if (player.getPlayer().getHydration() <= 0 | player.getPlayer().getWaterIntake() >= 200 | player.getPlayer().getAbsence() >= 3) {
 			gameOver();
 		}
-		if (elapsedTime % 1000 == 0) {
-		gameTime++;
+		if (elapsedTime % 100 == 0) {
+		gameTime = Math.round((gameTime + .1)*10.0)/10.0;
 		}
 		setChanged();
-		notifyObservers("Next game tick");
+		notifyObservers();
 	}
-	public void checkCollision(GameObject obj1, GameObject obj2) {
+	public boolean checkCollision(GameObject obj1, GameObject obj2) {
 		//checking if they overlap horizontally and vertically
 		if(obj1 != obj2 && obj1.getX() + obj1.getSize() >= obj2.getX() && obj1.getX() <= obj2.getX() + obj2.getSize() && obj1.getY() + obj1.getSize() >= obj2.getY() && obj1.getY() <= obj2.getY() + obj2.getSize()) {
-			if(obj1 instanceof Student) {
-				if (!obj1.recentCollisions.contains(obj2)) {
-					obj1.recentCollisions.add(obj2);
-					obj2.recentCollisions.add(obj1);
-					obj2.handleCollide((Student)obj1);
-				}
-			}
-			else if(obj2 instanceof Student) {
-				if (!obj2.recentCollisions.contains(obj1)) {
-					obj1.recentCollisions.add(obj2);
-					obj2.recentCollisions.add(obj1);
-					obj1.handleCollide((Student)obj2);
-				}
-			}
+			return true;
 		}
 		else {
 			if(obj1.recentCollisions.contains(obj2)) {
 				obj1.recentCollisions.remove(obj2);
 				obj2.recentCollisions.remove(obj1);
 			}
+			return false;
 		}
 	}
+	public void collision(GameObject obj1, GameObject obj2) {
+		if(obj1 instanceof Student) {
+			if (!obj1.recentCollisions.contains(obj2)) {
+				obj1.recentCollisions.add(obj2);
+				obj2.recentCollisions.add(obj1);
+				obj2.handleCollide((Student)obj1);
+				setChanged();
+				notifyObservers(obj1.getClass().getSimpleName() + " collided with " + obj2.getClass().getSimpleName() + "!");
+			}
+		}
+		else if(obj2 instanceof Student) {
+			if (!obj2.recentCollisions.contains(obj1)) {
+				obj1.recentCollisions.add(obj2);
+				obj2.recentCollisions.add(obj1);
+				obj1.handleCollide((Student)obj2);
+				setChanged();
+				notifyObservers(obj2.getClass().getSimpleName() + " collided with " + obj1.getClass().getSimpleName() + "!");
+			}
+		}
 
+	}
 	//game over :(
 	public void gameOver() {
 		boolean exit = Dialog.show("GameOver", "Game Time: " + gameTime, "Exit Game", null);

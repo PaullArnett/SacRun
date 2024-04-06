@@ -10,28 +10,30 @@ import com.codename1.ui.events.*;
 
 public class SacRun extends Form implements Runnable, ActionListener {
 
-	private GameModel gm;
+	private GameModel gm = new GameModel();;
 	char key = ' ';
 	UITimer turnTimer = new UITimer(() -> { handleInput(key); });
+	UITimer timer = new UITimer(this);
+	boolean changePosition = false;
+	
+	ViewMessage viewMessage = new ViewMessage();
+	ViewMap viewMap = new ViewMap();
+	ViewStatus viewStatus = new ViewStatus();
+	Controls controls = new Controls(gm, this);
+	Toolbar toolbar = this.getToolbar();
 	
 	public SacRun(){
-		gm = new GameModel();
-		UITimer timer = new UITimer(this);
-		timer.schedule(gm.tickLength, true, this);
 		A3();
 		gm.init();
-
+		timer.schedule(gm.tickLength, true, this);
 	}
+	
 	public void run() {
 		gm.gameTick();
 	}
+	
 	private void A3() {
-		ViewMessage viewMessage = new ViewMessage();
-		ViewMap viewMap = new ViewMap();
-		ViewStatus viewStatus = new ViewStatus();
-		Controls controls = new Controls(gm, this);
-		Toolbar toolbar = this.getToolbar();
-		
+
 		gm.addObserver(viewStatus);
 		gm.addObserver(viewMessage);
 		gm.addObserver(viewMap);
@@ -39,14 +41,15 @@ public class SacRun extends Form implements Runnable, ActionListener {
 		this.addPointerPressedListener((evt) -> { 
 			int pointerX = evt.getX();
 		    int pointerY = evt.getY();
-		    viewMap.checkPointer(pointerX, pointerY);
+		    viewMap.checkPointer(pointerX, pointerY, changePosition);
+		    changePosition = false;
 		});
 		
 		//Commands for toolbar
-		NonMovementCommand aboutB = new NonMovementCommand("About", gm);
-		NonMovementCommand strategiesB = new NonMovementCommand("Change Strategies", gm);
-        NonMovementCommand exitB = new NonMovementCommand("Exit", gm);
-        NonMovementCommand lectureHallB = new NonMovementCommand("Lecture Hall", gm);
+		NonMovementCommand aboutB = new NonMovementCommand("About", gm, this);
+		NonMovementCommand strategiesB = new NonMovementCommand("Change Strategies", gm, this);
+        NonMovementCommand exitB = new NonMovementCommand("Exit", gm, this);
+        NonMovementCommand lectureHallB = new NonMovementCommand("Lecture Hall", gm, this);
 		
 		//Creating side menu
 		toolbar.addMaterialCommandToSideMenu("Change Strategies", FontImage.MATERIAL_SETTINGS,strategiesB);
@@ -105,5 +108,18 @@ public class SacRun extends Form implements Runnable, ActionListener {
 	}
 	public void handleInput(char key) {
 		gm.playerMovement(key);
+	}
+	public void pauseGame() {
+		timer.cancel();
+		controls.getButton(5).setText("Play");
+		gm.change("Game is Paused");
+	}
+	public void playGame() {
+		timer.schedule(gm.tickLength, true, this);
+		controls.getButton(5).setText("Pause");
+		gm.change("Game Continues");
+	}
+	public void changePosition() {
+		this.changePosition = true;
 	}
 }

@@ -6,10 +6,13 @@ import com.codename1.ui.events.ActionEvent;
 
 class NonMovementCommand extends Command {
 	private GameModel gm;
-		public NonMovementCommand(String command, GameModel gm) {
+	private SacRun sacRun;
+		public NonMovementCommand(String command, GameModel gm, SacRun sacRun) {
 			super(command);
 			this.gm = gm;
+			this.sacRun = sacRun;
 		}
+		boolean playing = true;
 		public void actionPerformed(ActionEvent e) {
 			switch(getCommandName()) {
 
@@ -21,6 +24,18 @@ class NonMovementCommand extends Command {
 				case "Next Frame": handleInput('f'); break;
 				case "About": handleInput('i'); break;
 				case "Exit": handleInput('e'); break;
+				case "Change Position": sacRun.changePosition();break;
+				case "Pause":
+					if(playing) {
+						sacRun.pauseGame();
+						playing = false;
+					}
+					else {
+						sacRun.playGame();
+						playing = true;
+					}
+					break;
+
 			}
 		}
 		public void handleInput(char key) {

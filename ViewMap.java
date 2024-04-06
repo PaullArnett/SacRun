@@ -30,6 +30,12 @@ public class ViewMap extends Container implements Observer{
 				g.setColor(ColorUtil.BLUE);
 				g.fillRect(x, y, size, size);
 				g.drawString(((LectureHall)next).getName(), x, y + size + 5);
+				//"!" about active lecture
+				if (gm.activeLectureName != null) {
+					if (((LectureHall)next).getName().equals(gm.activeLectureName)) {
+						g.drawString("!", x + (size/2) - 7, y - 40);
+					}
+				}
 			}
 			if (next instanceof Restroom){
 				g.setColor(ColorUtil.GREEN);
@@ -65,17 +71,25 @@ public class ViewMap extends Container implements Observer{
     	gm = (GameModel) observable;
     	repaint();
     }
-    public void checkPointer(int pointerX, int pointerY) {
+    public void checkPointer(int pointerX, int pointerY, boolean changePosition) {
 		Iterator iterator2 = gm.getCollection().createIterator();
 		while(iterator2.hasNext()) {
 			GameObject next = iterator2.getNext();
-			//checking if the click was inside the bounds of each object -- the 116 being added is the size of the toolbar
-			if (pointerX >= next.getX() + getX() && pointerX <= next.getX() + next.getSize() + getX() && pointerY >= next.getY() + getY() + 115 && pointerY <= next.getY() + next.getSize() + getY() + 115) {
-				next.setSelected(true);
-			}
-			else {
+			if (changePosition && next.isSelected()) {
+				next.setX(pointerX - getX());
+				next.setY(pointerY - getY() - 115);
 				next.setSelected(false);
 			}
+			//checking if the click was inside the bounds of each object -- the 116 being added is the size of the toolbar
+			else if (pointerX >= next.getX() + getX() && pointerX <= next.getX() + next.getSize() + getX() && pointerY >= next.getY() + getY() + 115 && pointerY <= next.getY() + next.getSize() + getY() + 115) {
+				next.setSelected(true);
+				gm.change("Selected: " + next.getClass().getSimpleName());
+			}
+
+			else if (pointerX >= getX() && pointerY >= getY()) {
+				next.setSelected(false);
+			}
+			gm.change(null);
 		}
     }
 
