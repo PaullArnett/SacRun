@@ -225,8 +225,8 @@ public class GameModel extends Observable {
 		public void handleCollide(Student s){
 			if (s instanceof StudentPlayer) {
 				s.useRestroom();
-				s.turn(180);
 			}
+			s.turn(180);
 		}
 	}
 	//WaterDispenser class resets hydration of students to the default level if collided with
@@ -238,8 +238,8 @@ public class GameModel extends Observable {
 		public void handleCollide(Student s){
 			if (s instanceof StudentPlayer) {
 				s.drink();
-				s.turn(180);
 			}
+			s.turn(180);
 		}
 	}
 	//interface for all move-able objects
@@ -248,7 +248,7 @@ public class GameModel extends Observable {
 		public void handleCollide(Student s);
 	}
 	abstract class Student extends GameObject implements IMoveable {
-		public static final double DEFAULT_SPEED = 115;
+		public static final double DEFAULT_SPEED = 125;
 		private static final double DEFAULT_TALKIVELEVEL = 2;
 		private static final double DEFAULT_HYDRATION = 200.0;
 		public double speed = DEFAULT_SPEED;
@@ -392,6 +392,8 @@ public class GameModel extends Observable {
 			setX(gameWidth / 2);
 			setY(gameHeight / 2);
 			setHead(180);
+			setSpeed(1.5);
+			setSize(55);
 		}
 		public StudentPlayer getPlayer() {
 	        if (thePlayer == null) {
