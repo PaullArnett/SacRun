@@ -16,6 +16,7 @@ public class ViewMap extends Container implements Observer{
 		this.getStyle().setBorder(Border.createLineBorder(2, ColorUtil.rgb(255,0,0)));
 		this.setLayout(new BoxLayout(BoxLayout.Y_AXIS));
     }
+    //each tick objects are re painted in there new positions
 	public void paint(Graphics g) {
 		super.paint(g);
 		Iterator iterator = gm.getCollection().createIterator();
@@ -58,14 +59,12 @@ public class ViewMap extends Container implements Observer{
 			    	g.drawPolygon(xPoints, yPoints, 3);
 			    }
 			}
+			//if object is selected, draw a red square around them
 			if (next.isSelected()) {
 				g.setColor(ColorUtil.rgb(255,0,0));
 				g.drawRect(x, y, size, size);
 			}
-			//System.out.println(next.toString());
 		}
-		//System.out.println("Game Width: " + this.getWidth());
-		//System.out.println("Game Height: " + this.getHeight());
 	}
     public void update(Observable observable, Object o) {
     	gm = (GameModel) observable;
@@ -74,6 +73,7 @@ public class ViewMap extends Container implements Observer{
     public void checkPointer(int pointerX, int pointerY, boolean changePosition) {
 		Iterator iterator2 = gm.getCollection().createIterator();
 		while(iterator2.hasNext()) {
+			//first check if user is changing position of object and move it accordingly
 			GameObject next = iterator2.getNext();
 			if (changePosition && next.isSelected()) {
 				next.setX(pointerX - getX());
@@ -85,11 +85,11 @@ public class ViewMap extends Container implements Observer{
 				next.setSelected(true);
 				gm.change("Selected: " + next.getClass().getSimpleName());
 			}
-
+			//else if the pointer is within the viewMap then unselect the object
 			else if (pointerX >= getX() && pointerY >= getY()) {
 				next.setSelected(false);
 			}
-			gm.change(null);
+			gm.change(null); //if paused, objects will still be re-drawn
 		}
     }
 

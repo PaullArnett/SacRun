@@ -2,25 +2,16 @@ package com.csus.csc133;
 import com.codename1.ui.*;
 import com.codename1.ui.layouts.BorderLayout;
 import com.codename1.ui.util.UITimer;
-import com.csus.csc133.GameModel.GameObject;
-import com.csus.csc133.GameObjectCollection.Iterator;
 import com.codename1.ui.events.ActionEvent;
-import com.codename1.ui.events.ActionListener;
-import com.codename1.ui.events.*;
 
-public class SacRun extends Form implements Runnable, ActionListener {
-
+public class SacRun extends Form implements Runnable{
+    //Variables that need to be easily accessible
 	private GameModel gm = new GameModel();;
 	char key = ' ';
 	UITimer turnTimer = new UITimer(() -> { handleInput(key); });
 	UITimer timer = new UITimer(this);
 	boolean changePosition = false;
-	
-	ViewMessage viewMessage = new ViewMessage();
-	ViewMap viewMap = new ViewMap();
-	ViewStatus viewStatus = new ViewStatus();
 	Controls controls = new Controls(gm, this);
-	Toolbar toolbar = this.getToolbar();
 	
 	public SacRun(){
 		A3();
@@ -33,11 +24,16 @@ public class SacRun extends Form implements Runnable, ActionListener {
 	}
 	
 	private void A3() {
-
+		ViewMessage viewMessage = new ViewMessage();
+		ViewMap viewMap = new ViewMap();
+		ViewStatus viewStatus = new ViewStatus();
+		
+		Toolbar toolbar = this.getToolbar();
 		gm.addObserver(viewStatus);
 		gm.addObserver(viewMessage);
 		gm.addObserver(viewMap);
 		
+		//whenever pointer is pressed call checkPointer
 		this.addPointerPressedListener((evt) -> { 
 			int pointerX = evt.getX();
 		    int pointerY = evt.getY();
@@ -45,11 +41,10 @@ public class SacRun extends Form implements Runnable, ActionListener {
 		    changePosition = false;
 		});
 		
-		//Commands for toolbar
+		//Commands for tool bar
 		NonMovementCommand aboutB = new NonMovementCommand("About", gm, this);
 		NonMovementCommand strategiesB = new NonMovementCommand("Change Strategies", gm, this);
         NonMovementCommand exitB = new NonMovementCommand("Exit", gm, this);
-        NonMovementCommand lectureHallB = new NonMovementCommand("Lecture Hall", gm, this);
 		
 		//Creating side menu
 		toolbar.addMaterialCommandToSideMenu("Change Strategies", FontImage.MATERIAL_SETTINGS,strategiesB);
@@ -57,7 +52,6 @@ public class SacRun extends Form implements Runnable, ActionListener {
         toolbar.addMaterialCommandToSideMenu("Exit", FontImage.MATERIAL_EXIT_TO_APP, exitB);    
 
         //top right buttons
-        this.getToolbar().addMaterialCommandToRightBar("Lecture Hall", ' ', lectureHallB);
         this.getToolbar().addMaterialCommandToRightBar("About", ' ', aboutB);
 
         //layout of each container
@@ -87,7 +81,7 @@ public class SacRun extends Form implements Runnable, ActionListener {
             case 'a':
                 handleInput('a');
                 key = 'a';
-                turnTimer.schedule(50, true, this);
+                turnTimer.schedule(50, true, this); //turns smoothly if button held
                 break;
             case 'd':
                 handleInput('d');
@@ -96,6 +90,7 @@ public class SacRun extends Form implements Runnable, ActionListener {
                 break;
         }
     }
+    //stops turning once key released
 	public void keyReleased(int keyCode) {
 		switch(keyCode) {
 		case 'a':
@@ -109,11 +104,13 @@ public class SacRun extends Form implements Runnable, ActionListener {
 	public void handleInput(char key) {
 		gm.playerMovement(key);
 	}
+	//stops timer in order to pause game
 	public void pauseGame() {
 		timer.cancel();
 		controls.getButton(5).setText("Play");
 		gm.change("Game is Paused");
 	}
+	//continues timer to keep playing
 	public void playGame() {
 		timer.schedule(gm.tickLength, true, this);
 		controls.getButton(5).setText("Pause");

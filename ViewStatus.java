@@ -27,7 +27,6 @@ public class ViewStatus extends Container implements Observer{
 	
     public ViewStatus() {
 		this.setLayout(new BoxLayout(BoxLayout.Y_AXIS));
-		//this.getStyle().setBorder(Border.createLineBorder(2, ColorUtil.rgb(0,0,0)));
 		this.addAll(lectureHallD, lectureHallName, lectureTimeD, lectureTime, gameTimeD, gameTime, absenceD,
 				absence,hydrationD, hydration, waterIntakeD, waterIntake, holdD, hold);
     }
@@ -46,6 +45,7 @@ public class ViewStatus extends Container implements Observer{
     		lectureTime.setText("0.0");
     	}
     	
+    	//pull data from gm
     	gameTime.setText(String.valueOf(gm.getGameTime()));
     	absence.setText(String.valueOf(gm.getThePlayer().getAbsence()));
     	hydration.setText(String.valueOf(gm.getThePlayer().getHydration()));

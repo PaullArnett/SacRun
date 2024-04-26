@@ -60,8 +60,6 @@ public class GameModel extends Observable {
 	public interface ISelectable{
 		public void setSelected(boolean b);
 		public boolean isSelected();
-		//public boolean contains(Point pPtrRelPrnt, Point pCmpRelPrnt);
-		//public void draw(Graphics g, Point pCmpRelPrnt);
 	}
 	
 	abstract class GameObject implements ISelectable {
@@ -74,14 +72,13 @@ public class GameModel extends Observable {
 		Vector<GameObject> recentCollisions = new Vector<>();
 	
 		public GameObject(){
-			Iterator spawnIterator = objectCollection.createIterator();
 			boolean uniqueSpawn = false;
-			
 			//making sure objects don't overlap on initiation
 			while(!uniqueSpawn) {
 				uniqueSpawn = true;
 				this.x = random.nextInt(gameWidth - 90);
 				this.y = random.nextInt(gameHeight - 90);
+				Iterator spawnIterator = objectCollection.createIterator();
 				while (spawnIterator.hasNext()) {
 					if(checkCollision(this, spawnIterator.getNext())){
 						uniqueSpawn = false;
@@ -392,7 +389,7 @@ public class GameModel extends Observable {
 			setX(gameWidth / 2);
 			setY(gameHeight / 2);
 			setHead(180);
-			setSpeed(1.5);
+			setSpeed(1.8);
 			setSize(55);
 		}
 		public StudentPlayer getPlayer() {
@@ -633,7 +630,7 @@ public class GameModel extends Observable {
 	public void playerMovement(char key) {
 		String descr = null;
 		if(key == 'w') {
-			player.getPlayer().setSpeed(1); //player will move if game tick passes
+			player.getPlayer().setSpeed(1.8); //player will move if game tick passes
 			descr = "Player starts moving";
 		}
 		if(key == 's') {
@@ -655,67 +652,7 @@ public class GameModel extends Observable {
 	public void commands(char key) {
 		Iterator iterator = objectCollection.createIterator();
 		GameObject next = iterator.getNext();
-		if(key == '1') {
-			//iterate to find the active lecture 
-			while(iterator.hasNext()) {
-				next = iterator.getNext();
-				if (next instanceof LectureHall && activeLectureName == "Amador") {
-					if(((LectureHall) next).getName() == "Amador"){
-						next.handleCollide(player.getPlayer());
-						setChanged();
-						notifyObservers("Player collides with lecture hall Amador!");
-						break;
-					}
-				}
-				if (next instanceof LectureHall && activeLectureName == "Shasta") {
-					if(((LectureHall) next).getName() == "Shasta"){
-						next.handleCollide(player.getPlayer());
-						setChanged();
-						notifyObservers("Player collides with lecture hall Shasta!");
-						break;
-					}
-				}
-				if (next instanceof LectureHall && activeLectureName == "Tahoe") {
-					if(((LectureHall) next).getName() == "Tahoe"){
-						next.handleCollide(player.getPlayer());
-						setChanged();
-						notifyObservers("Player collides with lecture hall Tahoe!");
-						break;
-					}
-				}
-			}
-			if (!(next instanceof LectureHall)) {
-				setChanged();
-				notifyObservers("No active lectures for player to collide with");
-			}	
-		}
-		if(key == '2') {
-			//simulates collision with player and restroom
-			while(iterator.hasNext()) {
-				next = iterator.getNext();
-				if (next instanceof Restroom) {
-					next.handleCollide(player.getPlayer());
-					break;
-				}
-			}
-			setChanged();
-			notifyObservers("Player collides with the Restroom!");
-		}
-		if(key == '3') {
-			//simulates collision with player and water dispenser
-			while(iterator.hasNext()) {
-				next = iterator.getNext();
-				if (next instanceof WaterDispenser) {
-					next.handleCollide(player.getPlayer());
-					break;
-				}
-			}
-			setChanged();
-			notifyObservers("Player collides with the Water Dispenser!");
-		}
-		if(key == 'f') {
-			gameTick(); //game tick occurs
-		}
+		
 		if(key == 'i') {
 			//prints out creator
 			System.out.println("Developer: Paul Arnett");
@@ -734,59 +671,6 @@ public class GameModel extends Observable {
 				}
 			}
 		}
-	}
-	//iterates through gameObjects until a student of the correct class is found
-	public void pickStudent(int input) {
-		Iterator iterator = objectCollection.createIterator();
-		GameObject next = null;
-		while(iterator.hasNext()) {
-			next = iterator.getNext();
-			if (next instanceof StudentAngry && input == 0) {
-				next.handleCollide(player.getPlayer());
-				break;
-			}
-			if (next instanceof StudentBiking && input == 1) {
-				next.handleCollide(player.getPlayer());
-				break;
-			}
-			if (next instanceof StudentCar && input == 2) {
-				next.handleCollide(player.getPlayer());
-				break;
-			}
-			if (next instanceof StudentConfused && input == 3) {
-				next.handleCollide(player.getPlayer());
-				break;
-			}
-			if (next instanceof StudentFriendly && input == 4) {
-				next.handleCollide(player.getPlayer());
-				break;
-			}
-			if (next instanceof StudentHappy && input == 5) {
-				next.handleCollide(player.getPlayer());
-				break;
-			}
-			if (next instanceof StudentNonstop && input == 6) {
-				next.handleCollide(player.getPlayer());
-				break;
-			}
-			if (next instanceof StudentSleeping && input == 7) {
-				next.handleCollide(player.getPlayer());
-				break;
-			}
-			if (next instanceof StudentRunning && input == 8) {
-				next.handleCollide(player.getPlayer());
-				break;
-			}
-			if (next instanceof StudentStrategy && input == 9) {
-				next.handleCollide(player.getPlayer());
-				break;
-			}
-		}
-		//set color to pink
-		player.getPlayer().setColor(new int[] {255,192,203});
-		next.setColor(new int[] {255,192,203});
-		setChanged();
-		notifyObservers("Player collides with " + next.getClass().getSimpleName() + "!");
 	}
 	public void gameTick() {
 		elapsedTime += tickLength;
@@ -851,7 +735,6 @@ public class GameModel extends Observable {
 				notifyObservers(obj2.getClass().getSimpleName() + " collided with " + obj1.getClass().getSimpleName() + "!");
 			}
 		}
-
 	}
 	//game over :(
 	public void gameOver() {

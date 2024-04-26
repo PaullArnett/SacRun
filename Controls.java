@@ -17,9 +17,6 @@ class Controls extends Container{
 	    	buttons[3] = new Button("Turn Right");
 	    	//creating buttons for non-movement
 	    	buttons[4] = new Button("Change Strategies");
-	    	//buttons[5] = new Button("Lecture Hall");
-	    	//buttons[6] = new Button("Restroom");
-	    	//buttons[7] = new Button("Water Dispenser");
 	    	buttons[5] = new Button("Pause");
 	    	buttons[6] = new Button("Change Position");
 	    	
@@ -30,9 +27,6 @@ class Controls extends Container{
 			buttons[3].setCommand(new MovementCommand("Turn Right", gm));
 	        // Set commands for movement buttons
 			buttons[4].setCommand(new NonMovementCommand("Change Strategies", gm, sacRun));
-			//buttons[5].setCommand(new NonMovementCommand("Lecture Hall", gm, sacRun));
-			//buttons[6].setCommand(new NonMovementCommand("Restroom", gm, sacRun));
-			//buttons[7].setCommand(new NonMovementCommand("Water Dispenser", gm, sacRun));
 			buttons[5].setCommand(new NonMovementCommand("Pause", gm, sacRun));
 			buttons[6].setCommand(new NonMovementCommand("Change Position", gm, sacRun));
 		
