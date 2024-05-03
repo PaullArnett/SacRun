@@ -5,18 +5,20 @@ import java.util.Observable;
 import java.util.Random;
 import java.util.Vector;
 
+import com.codename1.charts.util.ColorUtil;
 import com.codename1.ui.Button;
 import com.codename1.ui.CN;
 import com.codename1.ui.Dialog;
 import com.codename1.ui.Graphics;
+import com.codename1.ui.Transform;
 import com.codename1.ui.events.ActionEvent;
 import com.codename1.ui.events.ActionListener;
 import com.codename1.ui.geom.Point;
 import com.csus.csc133.GameObjectCollection.Iterator;
 
 public class GameModel extends Observable {
-	private int gameWidth = 1000;
-	private int gameHeight = 800;
+	private int gameWidth;
+	private int gameHeight;
 	private double gameTime;
 	private double elapsedTime;
 	public int tickLength = 20;
@@ -64,14 +66,23 @@ public class GameModel extends Observable {
 	
 	abstract class GameObject implements ISelectable {
 		//coordinates of object
-		public double x; 
-		public double y; 
 		private int size;
 		private int[] color = {0,0,0};
 		private boolean isSelected;
 		Vector<GameObject> recentCollisions = new Vector<>();
+		
+		Transform translateForm = Transform.makeIdentity();
+		Transform rotateForm = Transform.makeIdentity();
+		private Transform myScale = Transform.makeIdentity();
+		
+		public int[]  pX,pY;
 	
 		public GameObject(){
+			pX = new int[] {-size/2, -size/2, size/2, size/2};
+			pY = new int[] {size/2, -size/2, -size/2, size/2};
+			translateForm.translate(random.nextInt(gameWidth), random.nextInt(gameHeight));
+		}
+			/*
 			boolean uniqueSpawn = false;
 			//making sure objects don't overlap on initiation
 			while(!uniqueSpawn) {
@@ -86,19 +97,47 @@ public class GameModel extends Observable {
 				}
 			}
 		}
+		*/
+		public void draw (Graphics g, int screenX, int screenY) {
+
+		}
+		public void applyTranslation(Graphics g) {
+			Transform gXform = Transform.makeIdentity();
+			g.getTransform(gXform);
+			
+			gXform.translate(translateForm.getTranslateX(), translateForm.getTranslateY());
+			
+			g.setTransform(gXform);
+		}
+		public void applyRotation(Graphics g) {
+			Transform gXform = Transform.makeIdentity();
+			g.getTransform(gXform);
+			
+			gXform.concatenate(rotateForm);
+			
+			g.setTransform(gXform);
+		}
+		public void applyScale(Graphics g) {
+			Transform gXform = Transform.makeIdentity();
+			g.getTransform(gXform);
+			
+			gXform.concatenate(myScale);
+			
+			g.setTransform(gXform);
+		}
+		
 		//methods for getting and setting variables
 		public double getX() {
-		    return this.x;
+		    return translateForm.getTranslateX();
 		}
+
 		public double getY() {
-		    return this.y;
+		    return translateForm.getTranslateY();
 		}
-		public void setX(double x) {
-		    this.x = x;
+		public void setXY(float x, float y) {
+			translateForm.setTranslation(x, y);  
 		}
-		public void setY(double y) {
-		    this.y = y;
-		}
+			
 		public int[] getColor() {
 		    return this.color;
 		}
@@ -128,6 +167,26 @@ public class GameModel extends Observable {
 			super();
 			setSize(90);
 		}
+		////////
+		public void draw (Graphics g, int screenX, int screenY) {
+			float x = -this.getSize() / 2;
+			float y = -this.getSize() / 2;
+					
+			Transform oldXform = Transform.makeIdentity();
+			g.getTransform(oldXform);
+			
+			applyTranslation(g);
+			applyRotation(g);	
+			applyScale(g);
+			g.fillRect((int) x, (int) y, this.getSize(), this.getSize());
+			
+			if (this.isSelected()) {
+				g.setColor(ColorUtil.rgb(255,0,0));
+				g.drawRect(-(this.getSize()/2), -(this.getSize()/2), this.getSize(), this.getSize());
+			}
+			
+			g.setTransform(oldXform);
+		}
 		//base toString for facilities which returns class name and position
 		public String toString() {
 			return getClass().getSimpleName() + ", pos (" + getX() + "," + getY() + "), Size: " + getSize();
@@ -149,6 +208,7 @@ public class GameModel extends Observable {
 			super();
 			this.name = name;
 		}
+
 		//if there is an active lecture then decrease its time by 1
 		public void lectureTick() {
 			if(elapsedTime % 100 == 0) {
@@ -219,6 +279,10 @@ public class GameModel extends Observable {
 			super();
 			setSize(70);
 		}
+		public void draw (Graphics g, int screenX, int screenY) {
+			g.setColor(ColorUtil.GREEN);
+			super.draw(g, screenX, screenY);
+		}
 		public void handleCollide(Student s){
 			if (s instanceof StudentPlayer) {
 				s.useRestroom();
@@ -237,6 +301,25 @@ public class GameModel extends Observable {
 				s.drink();
 			}
 			s.turn(180);
+		}
+		public void draw (Graphics g, int screenX, int screenY) {
+			float x = -this.getSize() / 2;
+			float y = -this.getSize() / 2;
+			g.setColor(ColorUtil.BLUE);
+					
+			Transform oldXform = Transform.makeIdentity();
+			g.getTransform(oldXform);
+			
+			applyTranslation(g);
+			applyRotation(g);	
+			g.fillArc((int) x, (int) y, this.getSize(), this.getSize(), 0, 360);
+			
+			if (this.isSelected()) {
+				g.setColor(ColorUtil.rgb(255,0,0));
+				g.drawRect(-(this.getSize()/2), -(this.getSize()/2), this.getSize(), this.getSize());
+			}
+			
+			g.setTransform(oldXform);
 		}
 	}
 	//interface for all move-able objects
@@ -263,22 +346,60 @@ public class GameModel extends Observable {
 			setHead(random.nextInt(359));
 			setColor(new int[]{255,0,0});  //red
 			setSize(random.nextInt(21)+40);  //size of 40-60
+			
+			pX = new int[] {0, -this.getSize()/2, this.getSize()/2};
+			pY = new int[] {this.getSize()/2+10, -this.getSize()/2, -this.getSize()/2};
+
 		}
-		public void move() {
+		public void draw (Graphics g, int screenX, int screenY) {
+			int[] color = this.getColor();
+	    	g.setColor(ColorUtil.rgb(color[0], color[1], color[2]));
+	    	
+			Transform xForm = Transform.makeIdentity(); 
+			Transform oldXform = Transform.makeIdentity();
+
+			//get parent's transformation
+			g.getTransform(xForm);
+			oldXform = xForm.copy();
+			
+			//transform them
+			xForm.translate(screenX, screenY);
+			xForm.concatenate(translateForm);
+			xForm.concatenate(rotateForm);
+			xForm.translate(-screenX, -screenY);
+			
+			//apply the transformation for the next draw (push stack)
+			g.setTransform(xForm);
+			
+			if(this instanceof StudentPlayer) {
+				g.fillPolygon(pX, pY, 3);
+			}
+			else if(this instanceof Student){
+				g.drawPolygon(pX, pY, 3);
+			}
+			if (this.isSelected()) {
+				g.setColor(ColorUtil.rgb(255,0,0));
+				g.drawRect(-(this.getSize()/2), -(this.getSize()/2), this.getSize(), this.getSize());
+			}
+			
+			//set it back to old one (pop stack)
+			g.setTransform(oldXform);
+		}
+		public void move() {	
 			if (timeRemaining <= 0) { //if not talking with another student then move
-				double xNext = x + Math.cos(Math.toRadians(90 - head)) * speed * tickMult;
-				double yNext = y + Math.sin(Math.toRadians(90 - head)) * speed * tickMult;
+				double xNext = translateForm.getTranslateX();
+				double yNext = translateForm.getTranslateY();
 				//if player were to go outside bounds of map then they are placed at nearest edge and turned around
-				if (xNext > gameWidth - getSize()) {
-					xNext = gameWidth - getSize();
+				if (xNext > gameWidth) {
+					xNext = gameWidth;
 					needTurn = true;
 				}
 				if (xNext < 0) {
 					xNext = 0;
 					needTurn = true;
 				}
-				if (yNext > gameHeight - getSize()) {
-					yNext = gameHeight - getSize();
+				if (yNext > gameHeight) {
+					yNext = gameHeight;
 					needTurn = true;
 				}
 				if (yNext < 0) {
@@ -289,9 +410,13 @@ public class GameModel extends Observable {
 					turn(180);
 					needTurn = false;
 				}
-				setX(xNext);
-				setY(yNext);
+				float xf = (float)(Math.cos(Math.toRadians(90 - head)) * speed * tickMult);
+				float yf = (float)(Math.sin(Math.toRadians(90 - head)) * speed * tickMult);
+				translateForm.translate(xf, yf);
 			}
+
+
+			
 			if(elapsedTime % 1000 == 0)
 			{
 				hydration = hydration - sweatingRate; //hydration and timeRemaining drops each elapsed second
@@ -323,6 +448,8 @@ public class GameModel extends Observable {
 	        return head;
 	    }
 	    public void setHead(double deg) {
+	    	double rotate = head - deg;
+	    	rotateForm.rotate((float)Math.toRadians(rotate),0,0);
 	    	head = deg;
 	    }
 	    //adds input to current head value and ensures value is between 1-359
@@ -334,6 +461,7 @@ public class GameModel extends Observable {
 	    	while (head < 0) {
 	    		head = head + 360;
 	    	}
+	    	rotateForm.rotate(-(float)Math.toRadians(deg),0,0);
 	    }
 	    //talkiveLevel is how long they will talk if collided with
 	    public double getTalkiveLevel() {
@@ -386,10 +514,9 @@ public class GameModel extends Observable {
 		private StudentPlayer() {
 			//middle of map facing north
 			super();
-			setX(gameWidth / 2);
-			setY(gameHeight / 2);
+			translateForm.setTranslation(gameWidth/2, gameHeight/2);
 			setHead(180);
-			setSpeed(1.8);
+			setSpeed(0);
 			setSize(55);
 		}
 		public StudentPlayer getPlayer() {
@@ -636,6 +763,7 @@ public class GameModel extends Observable {
 		if(key == 's') {
 			player.getPlayer().setSpeed(0); //player will NOT move if game tick passes
 			descr = "Player stops moving";
+			
 		}
 		if(key == 'a') {
 			player.getPlayer().turn(10); // player turns left 15 degrees
@@ -704,8 +832,12 @@ public class GameModel extends Observable {
 		notifyObservers();
 	}
 	public boolean checkCollision(GameObject obj1, GameObject obj2) {
+		double obj1X = obj1.getX() - obj1.getSize();
+		double obj1Y = obj1.getY() - obj1.getSize();
+		double obj2X = obj2.getX() - obj1.getSize();
+		double obj2Y = obj2.getY() - obj1.getSize();
 		//checking if they overlap horizontally and vertically
-		if(obj1 != obj2 && obj1.getX() + obj1.getSize() >= obj2.getX() && obj1.getX() <= obj2.getX() + obj2.getSize() && obj1.getY() + obj1.getSize() >= obj2.getY() && obj1.getY() <= obj2.getY() + obj2.getSize()) {
+		if(obj1 != obj2 && obj1X + obj1.getSize() >= obj2X && obj1X <= obj2X + obj2.getSize() && obj1Y + obj1.getSize() >= obj2Y && obj1Y <= obj2Y + obj2.getSize()) {
 			return true;
 		}
 		else {

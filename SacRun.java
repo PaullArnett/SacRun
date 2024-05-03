@@ -1,4 +1,7 @@
 package com.csus.csc133;
+import java.io.InputStream;
+import com.codename1.media.Media;
+import com.codename1.media.MediaManager;
 import com.codename1.ui.*;
 import com.codename1.ui.layouts.BorderLayout;
 import com.codename1.ui.util.UITimer;
@@ -6,16 +9,21 @@ import com.codename1.ui.events.ActionEvent;
 
 public class SacRun extends Form implements Runnable{
     //Variables that need to be easily accessible
-	private GameModel gm = new GameModel();;
+	private GameModel gm = new GameModel();
 	char key = ' ';
 	UITimer turnTimer = new UITimer(() -> { handleInput(key); });
 	UITimer timer = new UITimer(this);
 	boolean changePosition = false;
 	Controls controls = new Controls(gm, this);
+	Sound background = new Sound("bgMusic.mp3");
+	
+	ViewMap viewMap = new ViewMap();
 	
 	public SacRun(){
-		A3();
+		A4();
+		background.run();
 		gm.init();
+		viewMap.setWH(viewMap.getWidth(), viewMap.getHeight());
 		timer.schedule(gm.tickLength, true, this);
 	}
 	
@@ -23,9 +31,8 @@ public class SacRun extends Form implements Runnable{
 		gm.gameTick();
 	}
 	
-	private void A3() {
+	private void A4() {
 		ViewMessage viewMessage = new ViewMessage();
-		ViewMap viewMap = new ViewMap();
 		ViewStatus viewStatus = new ViewStatus();
 		
 		Toolbar toolbar = this.getToolbar();
@@ -61,9 +68,13 @@ public class SacRun extends Form implements Runnable{
 	    this.add(BorderLayout.CENTER, viewMap);
 	    this.add(BorderLayout.SOUTH, viewMessage);
         this.show();
-        
+
+        //s1.play();
+       
         gm.setGameWidth(viewMap.getWidth());
         gm.setGameHeight(viewMap.getHeight());
+        
+
 	}
 	
 	public void actionPerformed(ActionEvent evt) {
@@ -109,12 +120,14 @@ public class SacRun extends Form implements Runnable{
 		timer.cancel();
 		controls.getButton(5).setText("Play");
 		gm.change("Game is Paused");
+		background.pause();
 	}
 	//continues timer to keep playing
 	public void playGame() {
 		timer.schedule(gm.tickLength, true, this);
 		controls.getButton(5).setText("Pause");
 		gm.change("Game Continues");
+		background.play();
 	}
 	public void changePosition() {
 		this.changePosition = true;
