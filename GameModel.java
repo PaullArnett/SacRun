@@ -82,22 +82,6 @@ public class GameModel extends Observable {
 			pY = new int[] {size/2, -size/2, -size/2, size/2};
 			translateForm.translate(random.nextInt(gameWidth), random.nextInt(gameHeight));
 		}
-			/*
-			boolean uniqueSpawn = false;
-			//making sure objects don't overlap on initiation
-			while(!uniqueSpawn) {
-				uniqueSpawn = true;
-				this.x = random.nextInt(gameWidth - 90);
-				this.y = random.nextInt(gameHeight - 90);
-				Iterator spawnIterator = objectCollection.createIterator();
-				while (spawnIterator.hasNext()) {
-					if(checkCollision(this, spawnIterator.getNext())){
-						uniqueSpawn = false;
-					}
-				}
-			}
-		}
-		*/
 		public void draw (Graphics g, int screenX, int screenY) {
 
 		}
@@ -167,7 +151,6 @@ public class GameModel extends Observable {
 			super();
 			setSize(90);
 		}
-		////////
 		public void draw (Graphics g, int screenX, int screenY) {
 			float x = -this.getSize() / 2;
 			float y = -this.getSize() / 2;

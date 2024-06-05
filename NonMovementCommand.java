@@ -33,7 +33,7 @@ class NonMovementCommand extends Command {
 		}
 		public void handleInput(char key) {
 			if (key == 'i') {
-	            Dialog.show("A2", "Paul Arnett Spring 2024", "Confirm", null);
+	            Dialog.show("A4", "Paul Arnett Spring 2024", "Confirm", null);
 			}
 			else if (key == 'e') {
 				boolean exit = Dialog.show("Confirm", "Are you sure you want to exit?", "Yes", "No");

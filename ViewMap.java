@@ -31,20 +31,18 @@ public class ViewMap extends Container implements Observer{
 	Transform VTM, W2ND, ND2D;
 	
     public ViewMap() {
-
-		originalViewWidth = viewWidth = screenWidth = getWidth();
-		originalViewHeight = viewHeight = screenHeight = getHeight();
 		updateVTM();
-		
 		this.getStyle().setBorder(Border.createLineBorder(2, ColorUtil.rgb(255,0,0)));
 		this.setLayout(new BoxLayout(BoxLayout.Y_AXIS));
     }
+    //Initializes starting width/height
     public void setWH(int w, int h) {
     	originalViewWidth = viewWidth = screenWidth = w;
     	originalViewHeight = viewHeight = screenHeight = h;
     	updateVTM();
     }
     
+    //applies changes to VTM
     public void updateVTM() {
 		VTM = Transform.makeIdentity();
 		W2ND = Transform.makeScale(1.0f/viewWidth, 1.0f/viewHeight);
@@ -105,8 +103,10 @@ public class ViewMap extends Container implements Observer{
 			//first check if user is changing position of object and move it accordingly
 			GameObject next = iterator2.getNext();
 			if (changePosition && next.isSelected()) {
-				next.setXY((pointerX - getX() + viewL), (pointerY - getY() - 115) - viewB);
+				next.setXY((pointerX - getX())/(1.0f/viewWidth)/screenWidth + viewL, (pointerY- getY())/(1.0f/viewHeight)/screenHeight - viewB - 115);
+				System.out.println(pointerX);
 				next.setSelected(false);
+				
 			}
 			//checking if the click was inside the bounds of each object -- the 116 being added is the size of the toolbar
 			else if (pointerX >= (next.getX()- (next.getSize()/2) - viewL)*(1.0f/viewWidth)*screenWidth + getX()  && pointerX <= (next.getX() + next.getSize()- (next.getSize()/2)-viewL)*(1.0f/viewWidth)*screenWidth + getX() && pointerY >= (next.getY()  + 115- (next.getSize()/2)+viewB)*(1.0f/viewHeight)*screenHeight+ getY() && pointerY <= (next.getY() + next.getSize()  + 115- (next.getSize()/2)+viewB)*(1.0f/viewHeight)*screenHeight+ getY()) {
@@ -127,7 +127,6 @@ public class ViewMap extends Container implements Observer{
 		float newWidth = viewWidth * (factor);
 		float newHeight = viewHeight * (factor);
 		if(newWidth < 600 || newHeight < 600 ||	newWidth > 3000 || newHeight > 3000 ) return;
-		mult = mult * factor;
 		viewL += (viewWidth - newWidth)/2;
 		viewB -= (viewHeight - newHeight)/2;
 		viewWidth = (int) newWidth;
@@ -165,13 +164,6 @@ public class ViewMap extends Container implements Observer{
 			isPinch = false;
 			return;
 		}
-		/*
-		for(TransformedShape o: obj)
-		   if(o.contain(x,y))
-			   o.setSelect(true);
-		   else 
-			   o.setSelect(false);
-		*/
 		repaint();
 	}
 	

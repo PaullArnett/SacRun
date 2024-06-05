@@ -21,7 +21,7 @@ public class SacRun extends Form implements Runnable{
 	
 	public SacRun(){
 		A4();
-		background.run();
+		background.play();
 		gm.init();
 		viewMap.setWH(viewMap.getWidth(), viewMap.getHeight());
 		timer.schedule(gm.tickLength, true, this);
